@@ -947,13 +947,39 @@
             })
             .then(response => {
                 console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                return response.json();
+                // 先取得原始文字，然後嘗試清理
+                return response.text();
+            })
+            .then(rawText => {
+                console.log('Raw response text:', rawText);
+                
+                // 清理可能的控制字符
+                const cleanText = rawText
+                    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // 移除控制字符
+                    .replace(/\r\n/g, '\\n')  // 替換換行符
+                    .replace(/\r/g, '\\n')    // 替換回車符
+                    .replace(/\n/g, '\\n')    // 替換換行符
+                    .replace(/\t/g, '\\t');   // 替換制表符
+                
+                console.log('Cleaned text:', cleanText);
+                
+                try {
+                    const data = JSON.parse(cleanText);
+                    return data;
+                } catch (parseError) {
+                    console.error('JSON 解析錯誤:', parseError);
+                    console.log('嘗試手動修復 JSON...');
+                    
+                    // 嘗試更激進的清理
+                    const superCleanText = rawText.replace(/[\x00-\x1F\x7F]/g, ' ');
+                    const data = JSON.parse(superCleanText);
+                    return data;
+                }
             })
             .then(data => {
                 console.log('收到的資料:', data);
@@ -969,7 +995,9 @@
             .catch(error => {
                 console.error('載入失敗詳細錯誤:', error);
                 
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                if (error.message.includes('JSON')) {
+                    alert('資料格式錯誤，請檢查 Make.com 回傳的資料格式。詳細錯誤請查看瀏覽器控制台。');
+                } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
                     alert('網路請求失敗，可能是CORS問題。請檢查瀏覽器控制台查看詳細錯誤。');
                 } else {
                     alert(`載入失敗: ${error.message}`);
