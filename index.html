@@ -1100,10 +1100,99 @@
 
             showLoading();
             
-            setTimeout(() => {
+            // 準備要傳送的資料
+            const requestData = {
+                action: "generate_all",
+                productModel: productModel,
+                categoryId: categoryId,
+                productName: productName
+            };
+
+            // 如果有填寫廠商資料，加入請求
+            const supplierInfo = document.getElementById('supplierInfo').value.trim();
+            if (supplierInfo) {
+                requestData.supplierInfo = supplierInfo;
+            }
+
+            // 如果有填寫參考網頁，加入請求
+            const referenceUrl = document.getElementById('referenceUrl').value.trim();
+            if (referenceUrl) {
+                requestData.referenceUrl = referenceUrl;
+            }
+
+            // 如果是更新模式，加入現有資料供AI參考
+            if (isUpdateMode && currentProductData) {
+                requestData.existingData = currentProductData;
+            }
+
+            console.log('發送AI生成請求:', requestData);
+
+            // 調用 Make.com AI webhook
+            fetch('https://hook.us1.make.com/fcmy7w7qs45o5r6px58gqjd28k4u2l8b', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                console.log('AI Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response.text();
+            })
+            .then(rawText => {
+                console.log('AI Raw response:', rawText);
+                
+                // 清理可能的控制字符
+                const cleanText = rawText
+                    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+                    .replace(/\r\n/g, '\\n')
+                    .replace(/\r/g, '\\n')
+                    .replace(/\n/g, '\\n')
+                    .replace(/\t/g, '\\t');
+                
+                const data = JSON.parse(cleanText);
+                return data;
+            })
+            .then(data => {
+                console.log('AI生成結果:', data);
+                
+                if (data.success && data.generated) {
+                    // 填入AI生成的內容
+                    fillAIGeneratedContent(data.generated);
+                    alert('AI文案生成成功！');
+                } else {
+                    alert('AI生成失敗，請稍後再試');
+                }
+            })
+            .catch(error => {
+                console.error('AI生成失敗:', error);
+                alert(`AI生成失敗: ${error.message}`);
+            })
+            .finally(() => {
                 hideLoading();
-                mockGenerateAIContent();
-            }, 2000);
+            });
+        }
+
+        // 填入AI生成的內容
+        function fillAIGeneratedContent(generated) {
+            // 填入AI生成的各個欄位
+            if (generated.systemId) document.getElementById('aiSystemId').value = generated.systemId;
+            if (generated.alias) document.getElementById('aiAlias').value = generated.alias;
+            if (generated.image) document.getElementById('aiImage').value = generated.image;
+            if (generated.imageDesc) document.getElementById('aiImageDesc').value = generated.imageDesc;
+            if (generated.desc) document.getElementById('aiDesc').value = generated.desc;
+            if (generated.features) document.getElementById('aiFeatures').value = generated.features;
+            if (generated.specs) document.getElementById('aiSpecs').value = generated.specs;
+            if (generated.howToUse) document.getElementById('aiHowToUse').value = generated.howToUse;
+            if (generated.media1) document.getElementById('aiMedia1').value = generated.media1;
+            if (generated.media2) document.getElementById('aiMedia2').value = generated.media2;
+            if (generated.media3) document.getElementById('aiMedia3').value = generated.media3;
+            if (generated.tags) document.getElementById('aiTags').value = generated.tags;
         }
 
         function mockGenerateAIContent() {
@@ -1134,11 +1223,131 @@
             button.disabled = true;
             button.textContent = '🔄 生成中...';
             
-            setTimeout(() => {
+            const productModel = document.getElementById('productModel').value.trim();
+            const productName = document.getElementById('productName').value.trim();
+            
+            if (!productModel || !productName) {
+                alert('請先填入產品型號和產品名稱');
                 button.disabled = false;
                 button.textContent = '🔄 重新生成';
-                mockRefreshField(fieldName);
-            }, 1000);
+                return;
+            }
+
+            // 準備個別欄位重新生成的資料
+            const requestData = {
+                action: "generate_field",
+                fieldName: fieldName,
+                productModel: productModel,
+                productName: productName
+            };
+
+            // 加入廠商資料和參考網頁（如果有）
+            const supplierInfo = document.getElementById('supplierInfo').value.trim();
+            if (supplierInfo) {
+                requestData.supplierInfo = supplierInfo;
+            }
+
+            const referenceUrl = document.getElementById('referenceUrl').value.trim();
+            if (referenceUrl) {
+                requestData.referenceUrl = referenceUrl;
+            }
+
+            // 加入目前欄位的內容供AI參考
+            const currentValue = getCurrentFieldValue(fieldName);
+            if (currentValue) {
+                requestData.currentValue = currentValue;
+            }
+
+            console.log('個別欄位重新生成請求:', requestData);
+
+            // 調用 Make.com AI webhook
+            fetch('https://hook.us1.make.com/fcmy7w7qs45o5r6px58gqjd28k4u2l8b', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(rawText => {
+                const cleanText = rawText
+                    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+                    .replace(/\r\n/g, '\\n')
+                    .replace(/\r/g, '\\n')
+                    .replace(/\n/g, '\\n')
+                    .replace(/\t/g, '\\t');
+                
+                const data = JSON.parse(cleanText);
+                return data;
+            })
+            .then(data => {
+                console.log(`${fieldName} 重新生成結果:`, data);
+                
+                if (data.success && data.generated) {
+                    // 更新特定欄位
+                    updateSpecificField(fieldName, data.generated[fieldName]);
+                } else {
+                    alert('重新生成失敗，請稍後再試');
+                }
+            })
+            .catch(error => {
+                console.error('重新生成失敗:', error);
+                alert(`重新生成失敗: ${error.message}`);
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = '🔄 重新生成';
+            });
+        }
+
+        // 取得目前欄位的值
+        function getCurrentFieldValue(fieldName) {
+            const fieldMap = {
+                'alias': 'aiAlias',
+                'desc': 'aiDesc', 
+                'features': 'aiFeatures',
+                'specs': 'aiSpecs',
+                'howToUse': 'aiHowToUse',
+                'media1': 'aiMedia1',
+                'media2': 'aiMedia2',
+                'media3': 'aiMedia3',
+                'tags': 'aiTags'
+            };
+
+            const elementId = fieldMap[fieldName];
+            if (elementId) {
+                const element = document.getElementById(elementId);
+                return element ? element.value : '';
+            }
+            return '';
+        }
+
+        // 更新特定欄位
+        function updateSpecificField(fieldName, newValue) {
+            const fieldMap = {
+                'alias': 'aiAlias',
+                'desc': 'aiDesc',
+                'features': 'aiFeatures', 
+                'specs': 'aiSpecs',
+                'howToUse': 'aiHowToUse',
+                'media1': 'aiMedia1',
+                'media2': 'aiMedia2',
+                'media3': 'aiMedia3',
+                'tags': 'aiTags'
+            };
+
+            const elementId = fieldMap[fieldName];
+            if (elementId && newValue) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.value = newValue;
+                }
+            }
         }
 
         function mockRefreshField(fieldName) {
