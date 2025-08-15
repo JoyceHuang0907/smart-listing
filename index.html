@@ -1258,6 +1258,14 @@
                 requestData.currentValue = currentValue;
             }
 
+            // 如果是 Media 欄位，加入其他 Media 內容避免重複
+            if (fieldName.startsWith('media')) {
+                const otherMedias = getOtherMediaContent(fieldName);
+                if (Object.keys(otherMedias).length > 0) {
+                    requestData.otherMediaContent = otherMedias;
+                }
+            }
+
             console.log('個別欄位重新生成請求:', requestData);
 
             // 調用 Make.com AI webhook
@@ -1325,6 +1333,22 @@
                 return element ? element.value : '';
             }
             return '';
+        }
+
+        // 取得其他 Media 內容（避免重複）
+        function getOtherMediaContent(currentFieldName) {
+            const mediaFields = ['media1', 'media2', 'media3'];
+            const otherMedias = mediaFields.filter(field => field !== currentFieldName);
+            
+            const otherContent = {};
+            otherMedias.forEach(field => {
+                const content = getCurrentFieldValue(field);
+                if (content) {
+                    otherContent[field] = content;
+                }
+            });
+            
+            return otherContent;
         }
 
         // 更新特定欄位
