@@ -72,26 +72,31 @@
             font-size: 16px;
         }
 
-        .mode-selector select {
-            padding: 12px 20px;
-            border: 2px solid transparent;
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-option {
+            padding: 12px 25px;
+            border: 2px solid #005AB5;
             border-radius: 12px;
             font-size: 14px;
             font-weight: 600;
-            background: linear-gradient(135deg, #005AB5 0%, #003d82 100%);
-            color: white;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: white;
+            color: #005AB5;
         }
 
-        .mode-selector select:hover {
+        .mode-option:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 90, 181, 0.4);
         }
 
-        .mode-selector select:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(0, 90, 181, 0.3);
+        .mode-option.active {
+            background: linear-gradient(135deg, #005AB5 0%, #003d82 100%);
+            color: white;
         }
 
         .mode-new {
@@ -392,6 +397,23 @@
             background: rgba(255, 255, 255, 0.9);
         }
 
+        /* 特定欄位的高度調整 */
+        #aiDesc {
+            min-height: 120px;
+        }
+
+        #aiFeatures {
+            min-height: 140px;
+        }
+
+        #aiSpecs {
+            min-height: 140px;
+        }
+
+        #aiHowToUse {
+            min-height: 140px;
+        }
+
         .field-content textarea:focus, .field-content input:focus {
             border-color: #005AB5;
             box-shadow: 0 0 0 3px rgba(0, 90, 181, 0.1);
@@ -631,11 +653,11 @@
         <div class="header">
             <h1>🏭 產品上架管理系統</h1>
             <div class="mode-selector">
-                <label for="operationMode">操作模式：</label>
-                <select id="operationMode" onchange="changeMode()">
-                    <option value="new">新增產品</option>
-                    <option value="update">修改產品</option>
-                </select>
+                <label>操作模式：</label>
+                <div class="mode-toggle">
+                    <div class="mode-option active" onclick="setMode('new')">新增產品</div>
+                    <div class="mode-option" onclick="setMode('update')">修改產品</div>
+                </div>
             </div>
             <div class="mode-indicator mode-new" id="modeIndicator">新增模式</div>
         </div>
@@ -1010,37 +1032,6 @@
             });
         }
 
-        // 保留模擬功能作為備用（可以刪除）
-        function mockLoadProduct(productModel) {
-            const mockProducts = {
-                'ME6201': {
-                    categoryId: 'MED001',
-                    productName: 'Adult CPR Pocket Mask',
-                    systemId: 'adult-cpr-pocket-mask_ME6201',
-                    alias: 'CPR mask, emergency mask, rescue mask',
-                    image: 'ME6201.jpg',
-                    imageDesc: 'Adult CPR Pocket Mask',
-                    desc: 'Professional adult CPR pocket mask designed for emergency situations...',
-                    features: 'Compact design, easy to use, medical grade materials...',
-                    specs: 'Material: Medical grade plastic, Size: Standard adult...',
-                    howToUse: 'Open the case, position the mask, ensure proper seal...',
-                    media1: 'ME6201_Media1.jpg::::bottom::Emergency Ready::Compact and portable design for emergency situations',
-                    media2: 'ME6201_Media2.jpg::::bottom::Professional Grade::Medical grade materials ensure safety',
-                    media3: 'ME6201_Media3.jpg::::bottom::Easy to Use::Simple operation in critical moments',
-                    tags: 'CPR, emergency, medical, rescue, first aid'
-                }
-            };
-            
-            const productData = mockProducts[productModel];
-            
-            if (productData) {
-                loadExistingData(productData);
-                alert('產品資料載入成功！');
-            } else {
-                alert('找不到此產品型號的資料');
-            }
-        }
-
         function switchToUpdateMode() {
             isUpdateMode = true;
             const indicator = document.getElementById('modeIndicator');
@@ -1056,34 +1047,34 @@
         }
 
         function loadExistingData(productData) {
-            document.getElementById('categoryId').value = productData.categoryId;
-            document.getElementById('productName').value = productData.productName;
+            document.getElementById('categoryId').value = productData.categoryId || '';
+            document.getElementById('productName').value = productData.productName || '';
 
-            document.getElementById('originalSystemId').textContent = productData.systemId;
-            document.getElementById('originalAlias').textContent = productData.alias;
-            document.getElementById('originalImage').textContent = productData.image;
-            document.getElementById('originalImageDesc').textContent = productData.imageDesc;
-            document.getElementById('originalDesc').textContent = productData.desc;
-            document.getElementById('originalFeatures').textContent = productData.features;
-            document.getElementById('originalSpecs').textContent = productData.specs;
-            document.getElementById('originalHowToUse').textContent = productData.howToUse;
-            document.getElementById('originalMedia1').textContent = productData.media1;
-            document.getElementById('originalMedia2').textContent = productData.media2;
-            document.getElementById('originalMedia3').textContent = productData.media3;
-            document.getElementById('originalTags').textContent = productData.tags;
+            document.getElementById('originalSystemId').textContent = productData.systemId || '-';
+            document.getElementById('originalAlias').textContent = productData.alias || '-';
+            document.getElementById('originalImage').textContent = productData.image || '-';
+            document.getElementById('originalImageDesc').textContent = productData.imageDesc || '-';
+            document.getElementById('originalDesc').textContent = productData.desc || '-';
+            document.getElementById('originalFeatures').textContent = productData.features || '-';
+            document.getElementById('originalSpecs').textContent = productData.specs || '-';
+            document.getElementById('originalHowToUse').textContent = productData.howToUse || '-';
+            document.getElementById('originalMedia1').textContent = productData.media1 || '-';
+            document.getElementById('originalMedia2').textContent = productData.media2 || '-';
+            document.getElementById('originalMedia3').textContent = productData.media3 || '-';
+            document.getElementById('originalTags').textContent = productData.tags || '-';
 
-            document.getElementById('aiSystemId').value = productData.systemId;
-            document.getElementById('aiAlias').value = productData.alias;
-            document.getElementById('aiImage').value = productData.image;
-            document.getElementById('aiImageDesc').value = productData.imageDesc;
-            document.getElementById('aiDesc').value = productData.desc;
-            document.getElementById('aiFeatures').value = productData.features;
-            document.getElementById('aiSpecs').value = productData.specs;
-            document.getElementById('aiHowToUse').value = productData.howToUse;
-            document.getElementById('aiMedia1').value = productData.media1;
-            document.getElementById('aiMedia2').value = productData.media2;
-            document.getElementById('aiMedia3').value = productData.media3;
-            document.getElementById('aiTags').value = productData.tags;
+            document.getElementById('aiSystemId').value = productData.systemId || '';
+            document.getElementById('aiAlias').value = productData.alias || '';
+            document.getElementById('aiImage').value = productData.image || '';
+            document.getElementById('aiImageDesc').value = productData.imageDesc || '';
+            document.getElementById('aiDesc').value = productData.desc || '';
+            document.getElementById('aiFeatures').value = productData.features || '';
+            document.getElementById('aiSpecs').value = productData.specs || '';
+            document.getElementById('aiHowToUse').value = productData.howToUse || '';
+            document.getElementById('aiMedia1').value = productData.media1 || '';
+            document.getElementById('aiMedia2').value = productData.media2 || '';
+            document.getElementById('aiMedia3').value = productData.media3 || '';
+            document.getElementById('aiTags').value = productData.tags || '';
 
             currentProductData = productData;
         }
@@ -1193,29 +1184,6 @@
             if (generated.media2) document.getElementById('aiMedia2').value = generated.media2;
             if (generated.media3) document.getElementById('aiMedia3').value = generated.media3;
             if (generated.tags) document.getElementById('aiTags').value = generated.tags;
-        }
-
-        function mockGenerateAIContent() {
-            const productName = document.getElementById('productName').value;
-            const productModel = document.getElementById('productModel').value;
-            
-            const systemId = productName.toLowerCase().replace(/\s+/g, '-') + '_' + productModel;
-            document.getElementById('aiSystemId').value = systemId;
-            
-            document.getElementById('aiImage').value = productModel + '.jpg';
-            document.getElementById('aiImageDesc').value = productName;
-            
-            document.getElementById('aiAlias').value = productName + ', medical device, healthcare equipment';
-            document.getElementById('aiDesc').value = `The ${productName} is a professional medical device designed for healthcare applications. This ${productName} offers reliable performance in clinical settings. Our ${productName} meets international medical standards. The ${productName} provides excellent value for medical professionals.`;
-            document.getElementById('aiFeatures').value = 'Professional grade construction\nEasy to use design\nMedical grade materials\nCompact and portable\nReliable performance';
-            document.getElementById('aiSpecs').value = 'Material: Medical grade plastic\nDimensions: Standard size\nWeight: Lightweight design\nCertification: CE marked\nPackaging: Individual sterile packaging';
-            document.getElementById('aiHowToUse').value = '1. Remove from packaging\n2. Check for any damage\n3. Follow standard medical procedures\n4. Dispose of properly after use';
-            
-            document.getElementById('aiMedia1').value = `${productModel}_Media1.jpg::::bottom::Professional Quality::Medical grade materials ensure reliable performance in healthcare settings`;
-            document.getElementById('aiMedia2').value = `${productModel}_Media2.jpg::::bottom::Easy Operation::User-friendly design enables quick deployment in medical situations`;
-            document.getElementById('aiMedia3').value = `${productModel}_Media3.jpg::::bottom::Trusted Choice::Preferred by healthcare professionals worldwide for quality and reliability`;
-            
-            document.getElementById('aiTags').value = 'medical device, healthcare, professional, medical equipment, clinical';
         }
 
         function refreshField(fieldName) {
@@ -1374,41 +1342,6 @@
             }
         }
 
-        function mockRefreshField(fieldName) {
-            const productName = document.getElementById('productName').value;
-            const productModel = document.getElementById('productModel').value;
-            
-            switch(fieldName) {
-                case 'alias':
-                    document.getElementById('aiAlias').value = `${productName}, medical equipment, healthcare device, clinical tool, professional grade`;
-                    break;
-                case 'desc':
-                    document.getElementById('aiDesc').value = `High-quality ${productName} engineered for medical professionals. This ${productName} delivers exceptional performance in healthcare environments. The ${productName} features advanced design for optimal functionality. Trust our ${productName} for reliable medical applications.`;
-                    break;
-                case 'features':
-                    document.getElementById('aiFeatures').value = 'Advanced medical technology\nErgonomic design\nDurable construction\nSterile packaging\nQuality assurance tested';
-                    break;
-                case 'specs':
-                    document.getElementById('aiSpecs').value = 'Material: Premium medical grade\nSize: Optimized dimensions\nWeight: Balanced design\nStandards: ISO certified\nShelf life: Extended durability';
-                    break;
-                case 'howToUse':
-                    document.getElementById('aiHowToUse').value = '1. Prepare the device\n2. Ensure sterile conditions\n3. Apply according to guidelines\n4. Monitor usage\n5. Dispose responsibly';
-                    break;
-                case 'media1':
-                    document.getElementById('aiMedia1').value = `${productModel}_Media1.jpg::::bottom::Innovation::Cutting-edge technology meets medical excellence in every product`;
-                    break;
-                case 'media2':
-                    document.getElementById('aiMedia2').value = `${productModel}_Media2.jpg::::bottom::Reliability::Consistent performance when it matters most in medical care`;
-                    break;
-                case 'media3':
-                    document.getElementById('aiMedia3').value = `${productModel}_Media3.jpg::::bottom::Excellence::Setting new standards in medical device quality and safety`;
-                    break;
-                case 'tags':
-                    document.getElementById('aiTags').value = 'medical, healthcare, professional, clinical device, medical equipment';
-                    break;
-            }
-        }
-
         function showLoading() {
             document.getElementById('loadingDiv').classList.add('show');
             document.getElementById('generateBtn').disabled = true;
@@ -1512,6 +1445,11 @@
             }
             
             console.log('儲存資料:', data);
+            
+            // 這裡可以加入實際的保存邏輯，例如：
+            // - 發送到 Make.com 處理 Excel 更新
+            // - 或者生成 Excel 檔案下載
+            
             alert(`產品資料已${action}成功！`);
         }
 
