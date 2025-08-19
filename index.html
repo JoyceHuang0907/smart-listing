@@ -561,19 +561,28 @@
         }
 
         .radio-group {
-            display: flex;
-            gap: 25px;
             margin-top: 10px;
+            display: flex;
+            gap: 30px;
+            align-items: center;
         }
 
         .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: inline-block;
             cursor: pointer;
             font-weight: 500;
             color: #2c3e50;
-            font-size: 14px;
+            font-size: 15px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            padding-left: 35px;
+            white-space: nowrap;
+        }
+
+        .radio-option:hover {
+            background: rgba(0, 90, 181, 0.05);
         }
 
         .radio-option input[type="radio"] {
@@ -585,25 +594,29 @@
             height: 20px;
             border: 2px solid #005AB5;
             border-radius: 50%;
-            position: relative;
-            transition: all 0.3s ease;
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            box-sizing: border-box;
         }
 
         .radio-option input[type="radio"]:checked + .radio-custom {
-            background: linear-gradient(135deg, #005AB5 0%, #003d82 100%);
+            background: white;
             border-color: #005AB5;
         }
 
         .radio-option input[type="radio"]:checked + .radio-custom::after {
-            content: '';
+            content: '✓';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
+            color: #005AB5;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1;
         }
 
         .help-text {
@@ -786,7 +799,7 @@
                 </div>
             </div>
 
-            <button type="button" class="generate-btn" onclick="generateAIContent()" id="generateBtn">
+            <button type="button" class="generate-btn" onclick="generateAIContent()" id="generateBtn" style="margin-top: 15px;">
                 🤖 生成AI文案
             </button>
         </div>
@@ -1195,6 +1208,18 @@
             const referenceUrl = document.getElementById('referenceUrl').value.trim();
             if (referenceUrl) {
                 requestData.referenceUrl = referenceUrl;
+            }
+
+            // 檢查是否要使用參考資料
+            const useReference = document.querySelector('input[name="useReference"]:checked').value;
+            if (useReference === 'yes') {
+                const referenceData = document.getElementById('referenceData').value.trim();
+                if (referenceData) {
+                    requestData.referenceData = referenceData;
+                    requestData.useReference = true;
+                }
+            } else {
+                requestData.useReference = false;
             }
 
             // 如果是更新模式，加入現有資料供AI參考
