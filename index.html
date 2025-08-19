@@ -72,31 +72,35 @@
             font-size: 16px;
         }
 
-        .mode-toggle {
-            display: flex;
-            gap: 10px;
-        }
-
-        .mode-option {
-            padding: 12px 25px;
-            border: 2px solid #005AB5;
+        .mode-selector select {
+            padding: 12px 20px;
+            border: 2px solid transparent;
             border-radius: 12px;
             font-size: 14px;
             font-weight: 600;
+            background: linear-gradient(135deg, #005AB5 0%, #003d82 100%);
+            color: white;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: white;
-            color: #005AB5;
+            /* 確保下拉選單只顯示2個選項 */
+            size: 2;
         }
 
-        .mode-option:hover {
+        .mode-selector select:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 90, 181, 0.4);
         }
 
-        .mode-option.active {
-            background: linear-gradient(135deg, #005AB5 0%, #003d82 100%);
-            color: white;
+        .mode-selector select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 90, 181, 0.3);
+        }
+
+        /* 自定義下拉選單樣式 */
+        .mode-selector select option {
+            background: white;
+            color: #333;
+            padding: 10px;
         }
 
         .mode-new {
@@ -556,6 +560,52 @@
             box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
         }
 
+        .radio-group {
+            display: flex;
+            gap: 25px;
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #005AB5;
+            border-radius: 50%;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .radio-option input[type="radio"]:checked + .radio-custom {
+            background: linear-gradient(135deg, #005AB5 0%, #003d82 100%);
+            border-color: #005AB5;
+        }
+
+        .radio-option input[type="radio"]:checked + .radio-custom::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+
         .help-text {
             font-size: 12px;
             color: #7f8c8d;
@@ -653,11 +703,11 @@
         <div class="header">
             <h1>🏭 產品上架管理系統</h1>
             <div class="mode-selector">
-                <label>操作模式：</label>
-                <div class="mode-toggle">
-                    <div class="mode-option active" onclick="setMode('new')">新增產品</div>
-                    <div class="mode-option" onclick="setMode('update')">修改產品</div>
-                </div>
+                <label for="operationMode">操作模式：</label>
+                <select id="operationMode" onchange="changeMode()">
+                    <option value="new">新增產品</option>
+                    <option value="update">修改產品</option>
+                </select>
             </div>
             <div class="mode-indicator mode-new" id="modeIndicator">新增模式</div>
         </div>
@@ -693,10 +743,46 @@
                     <textarea id="supplierInfo" rows="3" placeholder="非必填，供AI參考"></textarea>
                     <div class="help-text">可提供廠商的產品規格、特色說明等資料</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Reference Search Section -->
+        <div class="basic-info">
+            <h2>🔍 搜尋商品參考資料</h2>
+            
+            <div class="form-row">
                 <div class="form-group">
                     <label for="referenceUrl">參考網頁</label>
                     <input type="url" id="referenceUrl" placeholder="https://example.com">
                     <div class="help-text">非必填，AI將參考該網頁的產品資訊或文案風格</div>
+                </div>
+                <div>
+                    <button type="button" class="check-btn" onclick="searchReference()">🔍 查詢</button>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="referenceData">查詢出的參考資料</label>
+                    <textarea id="referenceData" rows="8" placeholder="查詢結果將顯示在這裡" readonly></textarea>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>內容是否可使用</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="useReference" value="yes" checked>
+                            <span class="radio-custom"></span>
+                            是，可以使用
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="useReference" value="no">
+                            <span class="radio-custom"></span>
+                            否，不使用
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -1409,6 +1495,84 @@
             `);
         }
 
+        function searchReference() {
+            const productName = document.getElementById('productName').value.trim();
+            const referenceUrl = document.getElementById('referenceUrl').value.trim();
+            
+            // 檢查必填欄位
+            if (!productName) {
+                alert('請先填寫基本資訊中的「產品名稱」，作為搜尋關鍵字');
+                return;
+            }
+
+            // 顯示查詢狀態
+            const searchBtn = document.querySelector('.basic-info .check-btn');
+            const referenceData = document.getElementById('referenceData');
+            
+            searchBtn.disabled = true;
+            searchBtn.textContent = '🔍 查詢中...';
+            referenceData.value = '正在查詢商品參考資料，請稍候...';
+
+            console.log('發送商品搜尋請求:', {
+                action: 'fetch_reference',
+                productName: productName,
+                url: referenceUrl || null
+            });
+
+            // 調用 Make.com webhook 查詢商品參考資料
+            fetch('https://hook.us1.make.com/mzyzotjueqkv547kvd2xeu3bli2efoic', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'fetch_reference',
+                    productName: productName,
+                    url: referenceUrl || null
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(rawText => {
+                console.log('商品搜尋結果:', rawText);
+                
+                // 清理回應內容
+                const cleanText = rawText
+                    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+                    .replace(/\r\n/g, '\\n')
+                    .replace(/\r/g, '\\n')
+                    .replace(/\n/g, '\\n');
+                
+                const data = JSON.parse(cleanText);
+                return data;
+            })
+            .then(data => {
+                if (data.success && data.content) {
+                    referenceData.value = data.content;
+                    // 預設設為可使用
+                    document.querySelector('input[name="useReference"][value="yes"]').checked = true;
+                } else {
+                    referenceData.value = '未找到相關參考資料';
+                    document.querySelector('input[name="useReference"][value="no"]').checked = true;
+                }
+            })
+            .catch(error => {
+                console.error('商品搜尋失敗:', error);
+                referenceData.value = `搜尋失敗: ${error.message}`;
+                document.querySelector('input[name="useReference"][value="no"]').checked = true;
+            })
+            .finally(() => {
+                // 恢復按鈕狀態
+                searchBtn.disabled = false;
+                searchBtn.textContent = '🔍 查詢';
+            });
+        }
+
+        // 模擬查詢功能（測試用）
         function collectFormData() {
             return {
                 productModel: document.getElementById('productModel').value.trim(),
@@ -1416,6 +1580,8 @@
                 productName: document.getElementById('productName').value.trim(),
                 supplierInfo: document.getElementById('supplierInfo').value.trim(),
                 referenceUrl: document.getElementById('referenceUrl').value.trim(),
+                referenceData: document.getElementById('referenceData').value.trim(),
+                useReference: document.querySelector('input[name="useReference"]:checked').value,
                 systemId: document.getElementById('aiSystemId').value,
                 alias: document.getElementById('aiAlias').value,
                 image: document.getElementById('aiImage').value,
@@ -1463,6 +1629,8 @@
             document.getElementById('productName').value = '';
             document.getElementById('supplierInfo').value = '';
             document.getElementById('referenceUrl').value = '';
+            document.getElementById('referenceData').value = '';
+            document.querySelector('input[name="useReference"][value="yes"]').checked = true;
             
             const aiFields = [
                 'aiSystemId', 'aiAlias', 'aiImage', 'aiImageDesc', 
