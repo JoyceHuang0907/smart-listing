@@ -1552,7 +1552,14 @@
             })
             .then(data => {
                 if (data.success && data.content) {
-                    referenceData.value = data.content;
+                    let displayContent = data.content;
+                    
+                    // 如果有來源網址，在內容前面加上來源資訊
+                    if (data.source) {
+                        displayContent = `【來源】${data.source}\n\n${data.content}`;
+                    }
+                    
+                    referenceData.value = displayContent;
                     // 預設設為可使用
                     document.querySelector('input[name="useReference"][value="yes"]').checked = true;
                 } else {
