@@ -1331,6 +1331,18 @@
                 requestData.referenceUrl = referenceUrl;
             }
 
+            // 檢查是否要使用參考資料
+            const useReference = document.querySelector('input[name="useReference"]:checked').value;
+            if (useReference === 'yes') {
+                const referenceData = document.getElementById('referenceData').value.trim();
+                if (referenceData) {
+                    requestData.referenceData = referenceData;
+                    requestData.useReference = true;
+                }
+            } else {
+                requestData.useReference = false;
+            }
+
             // 加入目前欄位的內容供AI參考
             const currentValue = getCurrentFieldValue(fieldName);
             if (currentValue) {
