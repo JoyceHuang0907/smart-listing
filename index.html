@@ -1551,9 +1551,8 @@ const parseMediaContent = (mediaData) => {
                             ${content.replace(/\n/g, '<br>')}
                         </div>
                         <div class="media-image">
-                            <img src="placeholder-media-${index + 1}.jpg" alt="${title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="image-placeholder" style="display: none;">
-                                <span>📷 ${imageName}</span>
+                            <div class="image-placeholder">
+                                <span>📷 產品圖片 ${index + 1}</span>
                             </div>
                         </div>
                     </div>
@@ -1894,7 +1893,7 @@ const parseMediaContent = (mediaData) => {
                                 padding: 15px;
                             }
                         }
-                        .media-section {
+                       .media-section {
     margin-bottom: 40px;
     border-top: 1px solid #eee;
     padding-top: 30px;
@@ -2295,5 +2294,6 @@ const parseMediaContent = (mediaData) => {
     </script>
 </body>
 </html>
+
 
 
