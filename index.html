@@ -1502,7 +1502,7 @@
                 
                 const lines = features.split('\n').filter(line => line.trim());
                 return lines.map(line => {
-                    const cleanLine = line.replace(/^[-•]\s*/, '').trim();
+                    const cleanLine = line.replace(/^[-•*]\s*/, '').trim();
                     return `<li>${cleanLine}</li>`;
                 }).join('');
             };
@@ -1518,9 +1518,9 @@
                     if (line.includes(':') || line.includes('|')) {
                         const parts = line.split(/[:|]/).map(part => part.trim());
                         if (parts.length >= 2) {
-                            tableRows += `<tr><td><strong>${parts[0]}</strong></td><td>${parts[1]}</td></tr>`;
+                            tableRows += `<tr><td style="background: #f5f5f5; font-weight: bold; width: 120px;">${parts[0]}</td><td>${parts[1]}</td></tr>`;
                         }
-                    } else {
+                    } else if (line.trim()) {
                         tableRows += `<tr><td colspan="2">${line}</td></tr>`;
                     }
                 });
@@ -1528,29 +1528,42 @@
                 return tableRows || '<tr><td colspan="2">規格資訊待更新</td></tr>';
             };
 
-            // 處理使用說明
-            const formatHowToUse = (howToUse) => {
-                if (!howToUse) return '';
-                
-                const lines = howToUse.split('\n').filter(line => line.trim());
-                return lines.map(line => {
-                    const cleanLine = line.replace(/^[-•]\s*/, '').trim();
-                    return `<li>${cleanLine}</li>`;
-                }).join('');
-            };
-
-            // 處理媒體內容
-            const formatMediaContent = (media1, media2, media3) => {
+            // 處理Media內容，解析格式：圖片名::::位置::標題::內容
+            const parseMediaContent = (mediaData) => {
                 let mediaHTML = '';
                 
-                [media1, media2, media3].forEach((media, index) => {
+                [mediaData.media1, mediaData.media2, mediaData.media3].forEach((media, index) => {
                     if (media && media.trim()) {
-                        mediaHTML += `
-                            <div class="media-section">
-                                <h3>產品資訊 ${index + 1}</h3>
-                                <div class="media-content">${media.replace(/\n/g, '<br>')}</div>
-                            </div>
-                        `;
+                        const parts = media.split('::::');
+                        
+                        if (parts.length >= 4) {
+                            // 解析格式化的media內容
+                            const imageName = parts[0].trim();
+                            const position = parts[1].trim();
+                            const title = parts[2].trim();
+                            const content = parts[3].trim();
+                            
+                            mediaHTML += `
+                                <div class="media-section">
+                                    <h3 class="media-title">${title}</h3>
+                                    <div class="media-content">${content}</div>
+                                    <div class="media-image">
+                                        <img src="placeholder-media-${index + 1}.jpg" alt="${title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="image-placeholder" style="display: none;">
+                                            <span>📷 ${imageName}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // 處理未格式化的media內容
+                            mediaHTML += `
+                                <div class="media-section">
+                                    <h3 class="media-title">產品資訊 ${index + 1}</h3>
+                                    <div class="media-content">${media.replace(/\n/g, '<br>')}</div>
+                                </div>
+                            `;
+                        }
                     }
                 });
                 
@@ -1572,107 +1585,151 @@
                         }
 
                         body {
-                            font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
+                            font-family: Arial, sans-serif;
                             line-height: 1.6;
                             color: #333;
-                            background: #f8f9fa;
+                            background: white;
                         }
 
                         .preview-header {
-                            background: linear-gradient(135deg, #005AB5 0%, #003d82 100%);
+                            background: linear-gradient(135deg, #ff6b35 0%, #e53e3e 100%);
                             color: white;
-                            padding: 15px 0;
+                            padding: 10px 0;
                             text-align: center;
-                            font-size: 18px;
+                            font-size: 14px;
                             font-weight: bold;
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                         }
 
                         .container {
-                            max-width: 1200px;
+                            max-width: 1000px;
                             margin: 0 auto;
-                            background: white;
-                            min-height: 100vh;
+                            padding: 20px;
                         }
 
                         .product-header {
-                            padding: 40px;
-                            border-bottom: 2px solid #eee;
-                        }
-
-                        .product-title {
-                            font-size: 2.5em;
-                            color: #005AB5;
-                            margin-bottom: 10px;
-                            font-weight: 700;
-                        }
-
-                        .product-model {
-                            font-size: 1.3em;
-                            color: #666;
-                            margin-bottom: 15px;
-                            font-weight: 500;
-                        }
-
-                        .product-alias {
-                            color: #888;
-                            font-style: italic;
-                            margin-bottom: 20px;
-                        }
-
-                        .product-content {
                             display: flex;
-                            gap: 40px;
-                            padding: 40px;
+                            gap: 30px;
+                            margin-bottom: 30px;
                         }
 
-                        .product-image {
-                            flex: 0 0 400px;
+                        .product-images {
+                            flex: 0 0 300px;
                         }
 
-                        .image-placeholder {
+                        .main-image {
                             width: 100%;
-                            height: 300px;
-                            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-                            border: 2px dashed #2196f3;
+                            height: 250px;
+                            background: white;
+                            border: 1px solid #ddd;
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            color: #2196f3;
+                            margin-bottom: 15px;
+                            border-radius: 4px;
+                        }
+
+                        .main-image img {
+                            max-width: 100%;
+                            max-height: 100%;
+                            object-fit: contain;
+                        }
+
+                        .image-placeholder {
+                            color: #999;
                             font-size: 16px;
-                            border-radius: 8px;
-                            margin-bottom: 10px;
                         }
 
-                        .image-description {
-                            text-align: center;
-                            color: #666;
-                            font-size: 14px;
-                            margin-top: 10px;
+                        .thumbnail-row {
+                            display: flex;
+                            gap: 8px;
                         }
 
-                        .product-details {
+                        .thumbnail {
+                            width: 60px;
+                            height: 60px;
+                            border: 1px solid #ddd;
+                            background: #f8f9fa;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 10px;
+                            color: #999;
+                            border-radius: 4px;
+                        }
+
+                        .product-info {
                             flex: 1;
                         }
 
-                        .section {
-                            margin-bottom: 35px;
+                        .product-title {
+                            font-size: 24px;
+                            color: #333;
+                            margin-bottom: 8px;
+                            font-weight: normal;
                         }
 
-                        .section-title {
-                            font-size: 1.5em;
-                            color: #005AB5;
+                        .product-model {
+                            color: #666;
+                            margin-bottom: 5px;
+                            font-size: 14px;
+                        }
+
+                        .product-model .model-text {
+                            color: #e53e3e;
+                            font-weight: bold;
+                        }
+
+                        .product-alias {
+                            color: #666;
                             margin-bottom: 15px;
-                            padding-bottom: 8px;
-                            border-bottom: 2px solid #005AB5;
-                            font-weight: 600;
+                            font-size: 14px;
+                        }
+
+                        .product-alias .alias-text {
+                            color: #e53e3e;
+                            font-weight: bold;
                         }
 
                         .description {
-                            font-size: 16px;
-                            line-height: 1.8;
-                            color: #444;
+                            font-size: 14px;
+                            line-height: 1.6;
+                            color: #555;
                             margin-bottom: 20px;
+                        }
+
+                        .description .desc-label {
+                            color: #e53e3e;
+                            font-weight: bold;
+                        }
+
+                        .inquire-btn {
+                            background: #4CAF50;
+                            color: white;
+                            padding: 10px 20px;
+                            border: none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 5px;
+                        }
+
+                        .section {
+                            margin-bottom: 30px;
+                        }
+
+                        .section-title {
+                            font-size: 18px;
+                            color: #333;
+                            margin-bottom: 15px;
+                            font-weight: normal;
+                        }
+
+                        .section-title .features-label {
+                            color: #e53e3e;
+                            font-weight: bold;
                         }
 
                         .features-list {
@@ -1681,189 +1738,161 @@
                         }
 
                         .features-list li {
-                            background: #f8f9fa;
-                            margin-bottom: 8px;
-                            padding: 12px 15px;
-                            border-left: 4px solid #005AB5;
-                            border-radius: 4px;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #f0f0f0;
                             position: relative;
+                            padding-left: 20px;
+                            font-size: 14px;
+                            color: #555;
                         }
 
                         .features-list li::before {
-                            content: "✓";
-                            color: #005AB5;
+                            content: "●";
+                            position: absolute;
+                            left: 0;
+                            color: #333;
+                        }
+
+                        .specs-title {
+                            font-size: 18px;
+                            color: #333;
+                            margin-bottom: 15px;
+                            font-weight: normal;
+                        }
+
+                        .specs-title .specs-label {
+                            color: #e53e3e;
                             font-weight: bold;
-                            margin-right: 10px;
                         }
 
                         .specs-table {
                             width: 100%;
                             border-collapse: collapse;
-                            margin-bottom: 20px;
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                            border-radius: 8px;
-                            overflow: hidden;
-                        }
-
-                        .specs-table th {
-                            background: #005AB5;
-                            color: white;
-                            padding: 15px;
-                            text-align: left;
-                            font-weight: 600;
+                            border: 1px solid #ddd;
+                            font-size: 14px;
                         }
 
                         .specs-table td {
-                            padding: 12px 15px;
-                            border-bottom: 1px solid #eee;
+                            padding: 10px;
+                            border: 1px solid #ddd;
+                            vertical-align: top;
                         }
 
-                        .specs-table tr:nth-child(even) {
-                            background: #f8f9fa;
+                        .contents-section {
+                            margin-bottom: 30px;
                         }
 
-                        .specs-table tr:hover {
-                            background: #e3f2fd;
+                        .contents-title {
+                            font-size: 18px;
+                            color: #333;
+                            margin-bottom: 15px;
+                            font-weight: normal;
                         }
 
-                        .how-to-use {
-                            background: #fff3e0;
-                            padding: 25px;
-                            border-radius: 8px;
-                            border-left: 5px solid #ff8c00;
-                        }
-
-                        .how-to-use ul {
+                        .contents-list {
                             list-style: none;
                             padding: 0;
                         }
 
-                        .how-to-use li {
-                            margin-bottom: 10px;
-                            padding-left: 25px;
+                        .contents-list li {
+                            padding: 6px 0;
                             position: relative;
+                            padding-left: 20px;
+                            font-size: 14px;
+                            color: #555;
                         }
 
-                        .how-to-use li::before {
-                            content: counter(step-counter);
-                            counter-increment: step-counter;
+                        .contents-list li::before {
+                            content: "●";
                             position: absolute;
                             left: 0;
-                            top: 0;
-                            background: #ff8c00;
-                            color: white;
-                            border-radius: 50%;
-                            width: 20px;
-                            height: 20px;
-                            font-size: 12px;
-                            font-weight: bold;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        }
-
-                        .how-to-use ul {
-                            counter-reset: step-counter;
+                            color: #333;
                         }
 
                         .media-section {
-                            background: #f0f8ff;
-                            padding: 20px;
-                            margin-bottom: 20px;
-                            border-radius: 8px;
-                            border: 1px solid #cce7ff;
+                            margin-bottom: 30px;
+                            border-top: 1px solid #eee;
+                            padding-top: 20px;
                         }
 
-                        .media-section h3 {
-                            color: #005AB5;
+                        .media-title {
+                            font-size: 16px;
+                            color: #333;
                             margin-bottom: 10px;
-                            font-size: 1.2em;
+                            font-weight: bold;
+                        }
+
+                        .media-title .media-label {
+                            color: #e53e3e;
                         }
 
                         .media-content {
-                            line-height: 1.6;
-                            color: #444;
-                        }
-
-                        .tags-container {
-                            margin-top: 30px;
-                            padding: 20px;
-                            background: #f8f9fa;
-                            border-radius: 8px;
-                        }
-
-                        .tags-title {
-                            color: #666;
                             font-size: 14px;
-                            margin-bottom: 10px;
-                            text-transform: uppercase;
-                            letter-spacing: 1px;
+                            line-height: 1.6;
+                            color: #555;
+                            margin-bottom: 15px;
                         }
 
-                        .tags {
+                        .media-content .media-desc-label {
+                            color: #e53e3e;
+                            font-weight: bold;
+                        }
+
+                        .media-image {
+                            text-align: center;
+                        }
+
+                        .media-image img {
+                            max-width: 100%;
+                            height: auto;
+                            border: 1px solid #ddd;
+                            border-radius: 4px;
+                        }
+
+                        .media-image .image-placeholder {
+                            width: 100%;
+                            height: 200px;
+                            background: #f8f9fa;
+                            border: 2px dashed #ddd;
                             display: flex;
-                            flex-wrap: wrap;
-                            gap: 8px;
-                        }
-
-                        .tag {
-                            background: #005AB5;
-                            color: white;
-                            padding: 6px 12px;
-                            border-radius: 20px;
-                            font-size: 12px;
-                            font-weight: 500;
+                            align-items: center;
+                            justify-content: center;
+                            color: #999;
+                            font-size: 14px;
+                            border-radius: 4px;
                         }
 
                         .close-button {
                             position: fixed;
                             top: 20px;
                             right: 20px;
-                            background: #ff4757;
+                            background: #e53e3e;
                             color: white;
                             border: none;
-                            padding: 10px 20px;
-                            border-radius: 25px;
+                            padding: 8px 15px;
+                            border-radius: 4px;
                             cursor: pointer;
-                            font-weight: 600;
-                            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
-                            transition: all 0.3s ease;
+                            font-size: 12px;
                             z-index: 1000;
+                            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
                         }
 
                         .close-button:hover {
-                            transform: translateY(-2px);
-                            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
-                        }
-
-                        .system-id {
-                            background: #e8f5e8;
-                            color: #2e7d2e;
-                            padding: 5px 10px;
-                            border-radius: 4px;
-                            font-size: 12px;
-                            font-weight: 600;
-                            display: inline-block;
-                            margin-bottom: 15px;
+                            background: #c53030;
                         }
 
                         @media (max-width: 768px) {
-                            .product-content {
+                            .product-header {
                                 flex-direction: column;
-                                padding: 20px;
                                 gap: 20px;
                             }
 
-                            .product-image {
+                            .product-images {
                                 flex: none;
                             }
 
-                            .product-title {
-                                font-size: 2em;
-                            }
-
-                            .product-header {
-                                padding: 20px;
+                            .container {
+                                padding: 15px;
                             }
                         }
                     </style>
@@ -1873,81 +1902,86 @@
                         🔍 產品頁面預覽 - 模擬正式網站呈現效果
                     </div>
 
-                    <button class="close-button" onclick="window.close()">✕ 關閉預覽</button>
+                    <button class="close-button" onclick="window.close()">✕ 關閉</button>
 
                     <div class="container">
                         <div class="product-header">
-                            <h1 class="product-title">${data.productName || '產品名稱待設定'}</h1>
-                            <div class="product-model">${data.productModel || '產品型號待設定'}</div>
-                            ${data.systemId ? `<div class="system-id">系統ID: ${data.systemId}</div>` : ''}
-                            ${data.alias ? `<div class="product-alias">${data.alias}</div>` : ''}
-                        </div>
-
-                        <div class="product-content">
-                            <div class="product-image">
-                                <div class="image-placeholder">
-                                    ${data.image ? `<img src="${data.image}" alt="${data.productName}" style="max-width: 100%; max-height: 100%; object-fit: contain;">` : '📷 產品圖片'}
+                            <div class="product-images">
+                                <div class="main-image">
+                                    ${data.image ? 
+                                        `<img src="${data.image}" alt="${data.productName}">` : 
+                                        `<div class="image-placeholder">📷 產品主圖</div>`
+                                    }
                                 </div>
-                                ${data.imageDesc ? `<div class="image-description">${data.imageDesc}</div>` : ''}
+                                <div class="thumbnail-row">
+                                    <div class="thumbnail">圖1</div>
+                                    <div class="thumbnail">圖2</div>
+                                    <div class="thumbnail">圖3</div>
+                                    <div class="thumbnail">圖4</div>
+                                </div>
                             </div>
 
-                            <div class="product-details">
+                            <div class="product-info">
+                                <h1 class="product-title">${data.productName || '產品名稱待設定'}</h1>
+                                
+                                <div class="product-model">
+                                    ${data.productModel ? `<span class="model-text">產品型號(D欄)</span>` : ''}
+                                </div>
+                                
+                                ${data.alias ? `
+                                    <div class="product-alias">
+                                        <span class="alias-text">產品別稱(E欄)</span> ${data.alias}
+                                    </div>
+                                ` : ''}
+
                                 ${data.desc ? `
-                                    <div class="section">
-                                        <h2 class="section-title">產品描述</h2>
-                                        <div class="description">${data.desc.replace(/\n/g, '<br>')}</div>
+                                    <div class="description">
+                                        ${data.desc.replace(/\n/g, '<br>')}
+                                        <span class="desc-label">Desc描述(I欄)</span>
                                     </div>
                                 ` : ''}
 
-                                ${data.features ? `
-                                    <div class="section">
-                                        <h2 class="section-title">產品特色</h2>
-                                        <ul class="features-list">
-                                            ${formatFeatures(data.features)}
-                                        </ul>
-                                    </div>
-                                ` : ''}
-
-                                ${data.specs ? `
-                                    <div class="section">
-                                        <h2 class="section-title">產品規格</h2>
-                                        <table class="specs-table">
-                                            <thead>
-                                                <tr>
-                                                    <th style="width: 30%;">項目</th>
-                                                    <th>規格</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                ${formatSpecs(data.specs)}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                ` : ''}
-
-                                ${data.howToUse ? `
-                                    <div class="section">
-                                        <h2 class="section-title">使用說明</h2>
-                                        <div class="how-to-use">
-                                            <ul>
-                                                ${formatHowToUse(data.howToUse)}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                ` : ''}
-
-                                ${formatMediaContent(data.media1, data.media2, data.media3)}
-
-                                ${data.tags ? `
-                                    <div class="tags-container">
-                                        <div class="tags-title">相關標籤</div>
-                                        <div class="tags">
-                                            ${data.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
+                                <button class="inquire-btn">
+                                    ✓ INQUIRE NOW
+                                </button>
                             </div>
                         </div>
+
+                        ${data.features ? `
+                            <div class="section">
+                                <h2 class="section-title">
+                                    Features <span class="features-label">產品特性(K欄)</span>
+                                </h2>
+                                <ul class="features-list">
+                                    ${formatFeatures(data.features)}
+                                </ul>
+                            </div>
+                        ` : ''}
+
+                        ${data.specs ? `
+                            <div class="section">
+                                <h2 class="specs-title">
+                                    Specification <span class="specs-label">產品規格(L欄)</span>
+                                </h2>
+                                <table class="specs-table">
+                                    ${formatSpecs(data.specs)}
+                                </table>
+                            </div>
+                        ` : ''}
+
+                        ${data.howToUse ? `
+                            <div class="contents-section">
+                                <h2 class="contents-title">Contents</h2>
+                                <ul class="contents-list">
+                                    ${data.howToUse.split('\n').filter(line => line.trim()).map(line => {
+                                        const cleanLine = line.replace(/^[-•*]\s*/, '').trim();
+                                        return `<li>${cleanLine}</li>`;
+                                    }).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+
+                        ${parseMediaContent(data)}
                     </div>
                 </body>
                 </html>
@@ -2142,4 +2176,5 @@
     </script>
 </body>
 </html>
+
 
