@@ -1534,28 +1534,51 @@ const parseMediaContent = (mediaData) => {
     
     [mediaData.media1, mediaData.media2, mediaData.media3].forEach((media, index) => {
         if (media && media.trim()) {
+            // 先嘗試 :::: 格式
             const parts = media.split('::::');
             
-            if (parts.length >= 4) {
-                // 解析格式化的media內容
+            if (parts.length >= 2) {
+                // 解析格式：圖片名::::位置::標題::內容
                 const imageName = parts[0].trim();
-                const position = parts[1].trim();
-                const title = parts[2].trim();
-                const content = parts[3].trim();
+                const remaining = parts[1];
                 
-                mediaHTML += `
-                    <div class="media-section">
-                        <h3 class="media-title">${title}</h3>
-                        <div class="media-content">
-                            ${content.replace(/\n/g, '<br>')}
-                        </div>
-                        <div class="media-image">
-                            <div class="image-placeholder">
-                                <span>📷 產品圖片 ${index + 1}</span>
+                // 在剩餘部分中尋找 :: 分隔符
+                const doubleParts = remaining.split('::');
+                
+                if (doubleParts.length >= 3) {
+                    const position = doubleParts[0].trim();
+                    const title = doubleParts[1].trim();
+                    const content = doubleParts.slice(2).join('::').trim();
+                    
+                    mediaHTML += `
+                        <div class="media-section">
+                            <h3 class="media-title">${title}</h3>
+                            <div class="media-content">
+                                ${content.replace(/\n/g, '<br>')}
+                            </div>
+                            <div class="media-image">
+                                <div class="image-placeholder">
+                                    <span>📷 產品圖片 ${index + 1}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    // 如果無法解析 :: 格式，使用原始內容
+                    mediaHTML += `
+                        <div class="media-section">
+                            <h3 class="media-title">產品資訊 ${index + 1}</h3>
+                            <div class="media-content">
+                                ${remaining.replace(/\n/g, '<br>')}
+                            </div>
+                            <div class="media-image">
+                                <div class="image-placeholder">
+                                    <span>📷 產品圖片 ${index + 1}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             } else {
                 // 處理未格式化的media內容
                 const lines = media.split('\n').filter(line => line.trim());
@@ -2292,6 +2315,7 @@ const parseMediaContent = (mediaData) => {
     </script>
 </body>
 </html>
+
 
 
 
