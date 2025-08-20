@@ -1528,13 +1528,12 @@ function previewData() {
                 return tableRows || '<tr><td colspan="2">規格資訊待更新</td></tr>';
             };
 
-// 修改 parseMediaContent 函數，用來處理 Media 內容的解析和呈現
+// 處理Media內容，解析格式：圖片名::::位置::標題::內容
 const parseMediaContent = (mediaData) => {
     let mediaHTML = '';
     
     [mediaData.media1, mediaData.media2, mediaData.media3].forEach((media, index) => {
         if (media && media.trim()) {
-            // 嘗試解析格式化的media內容：圖片名::::位置::標題::內容
             const parts = media.split('::::');
             
             if (parts.length >= 4) {
@@ -1558,12 +1557,11 @@ const parseMediaContent = (mediaData) => {
                     </div>
                 `;
             } else {
-                // 處理未格式化的media內容，嘗試拆分標題和內容
+                // 處理未格式化的media內容
                 const lines = media.split('\n').filter(line => line.trim());
                 let title = `產品資訊 ${index + 1}`;
                 let content = media;
                 
-                // 如果第一行較短且後面有更多內容，將第一行作為標題
                 if (lines.length > 1 && lines[0].length < 50) {
                     title = lines[0].trim();
                     content = lines.slice(1).join('\n');
@@ -2294,6 +2292,7 @@ const parseMediaContent = (mediaData) => {
     </script>
 </body>
 </html>
+
 
 
 
