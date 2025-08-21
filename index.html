@@ -2173,6 +2173,7 @@ const parseMediaContent = (mediaData) => {
             // 準備要傳送的完整產品資料
             const saveData = {
                 action: isUpdateMode ? "update_product" : "save_product",
+                mode: isUpdateMode ? "update" : "new",  
                 productModel: data.productModel,
                 categoryId: data.categoryId,
                 productName: data.productName,
@@ -2315,6 +2316,7 @@ const parseMediaContent = (mediaData) => {
     </script>
 </body>
 </html>
+
 
 
 
